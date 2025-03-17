@@ -409,12 +409,18 @@ func (parser *Parser) ParseAPIMultiSearchDir(searchDirs []string, mainAPIFile st
 	// Use 'go list' command instead of depth.Resolve()
 	if parser.ParseDependency > 0 {
 		if parser.parseGoList {
-			pkgs, _ := listPackages(context.Background(), filepath.Dir(absMainAPIFilePath), nil, "-deps")
+			pkgs, err := listPackages(context.Background(), filepath.Dir(absMainAPIFilePath), nil, "-deps")
+			if err != nil {
+				fmt.Println("parser.parseGoList stdout")
+				return fmt.Errorf("pkg %s cannot find all dependencies parser.parseGoList, %s", filepath.Dir(absMainAPIFilePath), err)
+			}
 
 			length := len(pkgs)
 			for i := 0; i < length; i++ {
-				_ = parser.getAllGoFileInfoFromDepsByList(pkgs[i], parser.ParseDependency)
-
+				err := parser.getAllGoFileInfoFromDepsByList(pkgs[i], parser.ParseDependency)
+				if err != nil {
+					return err
+				}
 			}
 		} else {
 			var t depth.Tree

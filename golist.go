@@ -11,7 +11,7 @@ import (
 )
 
 func listPackages(ctx context.Context, dir string, env []string, args ...string) (pkgs []*build.Package, finalErr error) {
-	cmd := exec.CommandContext(ctx, "go", append([]string{"list", "-json", "-e"}, args...)...)
+	cmd := exec.CommandContext(ctx, "go", append([]string{"list", "-json"}, args...)...)
 	cmd.Env = env
 	cmd.Dir = dir
 
