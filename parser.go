@@ -1,7 +1,6 @@
 package swag
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -408,42 +407,27 @@ func (parser *Parser) ParseAPIMultiSearchDir(searchDirs []string, mainAPIFile st
 
 	// Use 'go list' command instead of depth.Resolve()
 	if parser.ParseDependency > 0 {
-		if parser.parseGoList {
-			pkgs, err := listPackages(context.Background(), filepath.Dir(absMainAPIFilePath), nil, "-deps")
-			if err != nil {
-				fmt.Println("parser.parseGoList stdout")
-				return fmt.Errorf("pkg %s cannot find all dependencies parser.parseGoList, %s", filepath.Dir(absMainAPIFilePath), err)
-			}
+		var t depth.Tree
+		t.ResolveInternal = true
+		t.MaxDepth = parseDepth
 
-			length := len(pkgs)
-			for i := 0; i < length; i++ {
-				err := parser.getAllGoFileInfoFromDepsByList(pkgs[i], parser.ParseDependency)
-				if err != nil {
-					return err
-				}
-			}
-		} else {
-			var t depth.Tree
-			t.ResolveInternal = true
-			t.MaxDepth = parseDepth
+		pkgName, err := getPkgName(filepath.Dir(absMainAPIFilePath))
+		if err != nil {
+			return err
+		}
 
-			pkgName, err := getPkgName(filepath.Dir(absMainAPIFilePath))
+		err = t.Resolve(pkgName)
+		if err != nil {
+			fmt.Println("depth.Tree stdout")
+			return fmt.Errorf("pkg %s cannot find all dependencies, depth.Tree%s", pkgName, err)
+		}
+		for i := 0; i < len(t.Root.Deps); i++ {
+			err := parser.getAllGoFileInfoFromDeps(&t.Root.Deps[i], parser.ParseDependency)
 			if err != nil {
 				return err
 			}
-
-			err = t.Resolve(pkgName)
-			if err != nil {
-				fmt.Println("depth.Tree stdout")
-				return fmt.Errorf("pkg %s cannot find all dependencies, depth.Tree%s", pkgName, err)
-			}
-			for i := 0; i < len(t.Root.Deps); i++ {
-				err := parser.getAllGoFileInfoFromDeps(&t.Root.Deps[i], parser.ParseDependency)
-				if err != nil {
-					return err
-				}
-			}
 		}
+
 	}
 
 	err = parser.ParseGeneralAPIInfo(absMainAPIFilePath)
