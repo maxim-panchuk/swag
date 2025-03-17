@@ -411,7 +411,8 @@ func (parser *Parser) ParseAPIMultiSearchDir(searchDirs []string, mainAPIFile st
 		if parser.parseGoList {
 			pkgs, err := listPackages(context.Background(), filepath.Dir(absMainAPIFilePath), nil, "-deps")
 			if err != nil {
-				return fmt.Errorf("pkg %s cannot find all dependencies, %s", filepath.Dir(absMainAPIFilePath), err)
+				fmt.Println("parser.parseGoList stdout")
+				return fmt.Errorf("pkg %s cannot find all dependencies parser.parseGoList, %s", filepath.Dir(absMainAPIFilePath), err)
 			}
 
 			length := len(pkgs)
@@ -433,7 +434,8 @@ func (parser *Parser) ParseAPIMultiSearchDir(searchDirs []string, mainAPIFile st
 
 			err = t.Resolve(pkgName)
 			if err != nil {
-				return fmt.Errorf("pkg %s cannot find all dependencies, %s", pkgName, err)
+				fmt.Println("depth.Tree stdout")
+				return fmt.Errorf("pkg %s cannot find all dependencies, depth.Tree%s", pkgName, err)
 			}
 			for i := 0; i < len(t.Root.Deps); i++ {
 				err := parser.getAllGoFileInfoFromDeps(&t.Root.Deps[i], parser.ParseDependency)
